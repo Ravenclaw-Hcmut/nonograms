@@ -151,9 +151,16 @@ def preTravel(board_curr, isRow = true, notChange = 0):
     for i in range(size):
         if isRow and lineLock['row'][i] == 1: continue
         if lineLock['column'][i] == 1: continue
-            
+        
+        if isRow:
+            board_curr[i] = fillPartialOf_Row(board_curr[i], row_constraint_init[i], i)
+        else:
+            board_curr[i] = fillPartialOf_Col(board_curr[i], column_constraint_init[i], i)
+        
+        merge_LineMatrix_Lock()
+        
         if isUnique(constraint[i]):
-            print(genState(constraint[i]))
+            # print(genState(constraint[i]))
             board_curr[i] = genState(constraint[i])[0]
             if isRow:
                 lineLock['row'][i] = 1
@@ -163,14 +170,84 @@ def preTravel(board_curr, isRow = true, notChange = 0):
             continue
  
     notChange = 0 if changeLocal else notChange + 1
-    if notChange >= 2:
-        return board_curr
+    # if notChange >= 2:
+    #     return board_curr
     
     if not (isRow):
         board_curr = transposeM(board_curr)
 
     return preTravel(board_curr, not(isRow), notChange)
 
+
+
+#   done sub2 for row
+def fillPartialOf_Row(line_Curr, constraint, line_Num):
+    stateList = genState(constraint)
+    
+    state_Transpost = transposeM(stateList)
+    
+    sumState = list(map(lambda x: sum(x), state_Transpost))
+
+    for i in range(size):
+        if sumState[i] == len(stateList):
+            line_Curr[i] = 1
+            board_isLock[line_Num][i] = 1
+            
+    
+    return line_Curr
+    # if notChange >= 2:
+    #     return board_curr
+    # pass
+
+def fillPartialOf_Col(line_Curr, constraint, line_Col):
+    stateList = genState(constraint)
+    state_Transpost = transposeM(stateList)
+    sumState = list(map(lambda x: sum(x), state_Transpost))
+    
+    for i in range(size):
+        if sumState[i] == len(stateList):
+            line_Curr[i] = 1
+            board_isLock[i][line_Col] = 1
+    
+    return line_Curr
+
+
+def genRowHeuristic(board_curr, num_row):
+    if num_row >= 5: return board_curr
+    row_state_list = genState(row_constraint_init[num_row])      #[[]]
+    
+    for row_state_child in row_state_list:                  #   []
+        if isSameLine(board_curr[num_row], row_state_child) == false:
+            continue
+        board_curr[num_row] = row_state_child                #   [[]]
+        if checkBoard(board_curr):
+            return genRowDown(board_curr, num_row + 1)
+        else:
+            # if num_row >= 4: print('no solution'); return []
+            continue
+    
+
+def merge_LineMatrix_Lock():
+    # update matrix based on lineLock
+    for i in range(size):
+        if lineLock['row'][i] == 1:
+            for j in range(size):
+                board_isLock[i][j] = 1
+    for i in range(size):
+        if lineLock['column'][i] == 1:
+            for j in range(size):
+                board_isLock[j][i] = 1
+
+    # update LineLock
+    for i in range(size):
+        if sum(board_isLock[i]) == 5:
+            lineLock['row'][i] = 1
+    for colNum in range(size):
+        tmp_sum = 0
+        for rowNum in range(size):
+            if board_isLock[rowNum][colNum] == 1: tmp_sum += 1
+        if tmp_sum == size:
+            lineLock['column'][colNum] = 1
 
 def transposeM (m):
     arr = np.array(m)
@@ -182,7 +259,19 @@ def isUnique(constraint):
     return len(constraint) == 3 or len(constraint) == 0 or (sum(constraint) == 4 and len(constraint) == 2) or constraint == [[5]]
         
 def isSameLine(line_Curr, line_Expected): # []
-    pass
+    for i in range(size):
+        if line_Curr[i] == -1: continue
+        if line_Curr[i] != line_Expected[i]:
+            return false
+    return true
+
+# def isSameLine_CheckColConstraint(line_Curr): # []
+#     for i in range(size):
+#         if line_Curr[i] == -1: continue
+#         if line_Curr[i] != line_Expected[i]:
+#             return false
+#     return true
+
 size = 5
 
 column_constraint_init = [[1,1],[1],[2],[2,2],[4]]   #   top of board, from L to R
@@ -199,6 +288,11 @@ board_isLock =  [[0 for i in range(size)] for i in range(size)]
 lineLock =  {   'row':      [0 for i in range(size)],
                 'column':   [0 for i in range(size)]
             }
+
+board_SpecialCase = preTravel(board_init)
+
         
-draw (preTravel(board_init))
+print (board_SpecialCase)
+draw (board_SpecialCase)
+
 # print (genRowDown(board_init, 0))
