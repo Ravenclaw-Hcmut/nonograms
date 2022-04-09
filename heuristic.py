@@ -1,6 +1,6 @@
 #   Huynh Tan Luan          1914054
 #   Nguyen Thanh Luu        1914084
-#   Nguyen Tran Quoc Uy     1915xxx
+#   Nguyen Tran Quoc Uy     1915866
 
 from asyncio import constants
 from os import curdir
@@ -195,9 +195,8 @@ def fillPartialOf_Row(line_Curr, constraint, line_Num):
             
     
     return line_Curr
-    # if notChange >= 2:
-    #     return board_curr
-    # pass
+
+
 
 def fillPartialOf_Col(line_Curr, constraint, line_Col):
     stateList = genState(constraint)
@@ -232,6 +231,7 @@ def genRowHeuristic(board_curr, num_row = 0):
         merge_LineMatrix_Lock()
         return genRowHeuristic(board_curr, num_row + 1)
         
+    board_queue = []
   
     row_state_list = genState(row_constraint_init[num_row])      #[[]]    
     for row_state_child in row_state_list:                  
@@ -240,15 +240,35 @@ def genRowHeuristic(board_curr, num_row = 0):
             continue
         board_curr[num_row] = row_state_child                
         if checkBoard(board_curr):
-            
-            # print ('-----------------------------\trow: ',num_row,'th')
-            # draw (board_curr)
-            
-            return genRowHeuristic(board_curr, num_row + 1)
+                       
+            # return genRowHeuristic(board_curr, num_row + 1)
+            board_queue += [(board_curr, heuristicFunc(board_curr))]
         else:
             # if num_row >= 4: print('no solution'); return []
             continue
     
+    def f(e):
+        return e[1]
+    board_queue.sort(reverse=True, key=f)
+    
+    for i in board_queue:
+        return genRowHeuristic(i[0], num_row + 1)
+    
+def heuristicFunc(board_curr):
+    tmp_matrix = transposeM(board_curr)
+    # ratio_Completed = [sum(tmp_matrix[0: num_row +1 ])]
+    
+    
+    # n_Completed = [sum(tmp_matrix[i] for i in range(size))]
+    n_Completed = []
+    ratio = 0
+    for i in range(size):
+        n_Completed += [sum(map(lambda x: x==1, board_curr[i]))]
+        # s += [sum(map(lambda x: x==1, a[i]))]
+        ratio += n_Completed[i] / num_BlackInCol[i]
+    
+    return ratio
+
 
 def merge_LineMatrix_Lock():
     # update matrix based on lineLock
@@ -295,12 +315,17 @@ def isSameLine(line_Curr, line_Expected): # []
 #             return False
 #     return True
 
+
+
+
 size = 5
 
 column_constraint_init = [[1,1],[1],[2],[2,2],[4]]   #   top of board, from L to R
 row_constraint_init = [[1,3],[3],[1],[2],[2,1]]      #   left of board, form top to down
 
 num_BlackInRow = [sum(x) for x in row_constraint_init]
+num_BlackInCol = [sum(x) for x in column_constraint_init]
+
 
 # column_constraint_init = [[1],[2,2],[3],[4],[1]]
 # row_constraint_init = [[2],[1,1],[2],[4],[3]]
@@ -308,6 +333,8 @@ num_BlackInRow = [sum(x) for x in row_constraint_init]
 
 board=[]
 board_init =    [[-1 for i in range(size)] for i in range(size)]
+
+
 board_isLock =  [[0 for i in range(size)] for i in range(size)]
 lineLock =  {   'row':      [0 for i in range(size)],
                 'column':   [0 for i in range(size)]
