@@ -4,4 +4,4 @@
 
 - nonoDFS.py: blind search (Depth First Search - Backtracking)
 
-- heuristic.py: use Heutistic function and pre-travel
+- heuristic.py: pre-travel and use Heutistic function (Best First Search)
