@@ -8,6 +8,9 @@ from os import curdir
 from matplotlib.cbook import print_cycles
 from sympy import N, false, true
 
+import time
+import tracemalloc
+
 import numpy as np
 
 # def isContain(child, parrent):
@@ -315,7 +318,8 @@ def isSameLine(line_Curr, line_Expected): # []
 #             return False
 #     return True
 
-
+stime = time.time()
+tracemalloc.start()
 
 
 size = 5
@@ -351,3 +355,11 @@ result = genRowHeuristic(board_SpecialCase, 0)
 draw (result)
 
 # print (genRowDown(board_init, 0))
+
+
+etime = time.time()
+# print_grid(gr)
+print('Solved in ', (etime - stime),' seconds')
+print('The solving function has been called times')
+print('Memory usage ',tracemalloc.get_traced_memory())
+tracemalloc.stop()
